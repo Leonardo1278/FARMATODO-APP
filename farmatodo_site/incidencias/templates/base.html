@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmatodo - Tu farmacia a un clic</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e2e2e2;
+            color: #000;
+            line-height: 1.6;
+        }
+
+        .container {
+            padding-top: 10px; /* Ajuste para el contenido principal debido al navbar fijo */
+        }
+                /* Reduciendo el tamaño de la navbar */
+        .navbar {
+            padding: 0.5rem 1rem; /* Ajuste el padding para reducir la altura */
+        }
+
+        /* Ajustes para los elementos de la navbar */
+        .navbar-brand, .nav-link {
+            padding-top: 0.3125rem;
+            padding-bottom: 0.3125rem;
+            font-size: 0.9rem; /* Opcional: ajusta el tamaño de fuente si es necesario */
+        }
+
+
+    </style>
+</head>
+<body>
+
+<header>
+    <!-- Barra de navegación de Bootstrap -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+            <img src="https://images.crunchbase.com/image/upload/c_pad,h_170,w_170,f_auto,b_white,q_auto:eco,dpr_1/v1407455232/ddjnq8o8ifpxurdfiw4h.png" alt="Logo" style="height: 30px; width: auto; margin-right: 5px;">Farmatodo</a>
+            
+                        <!-- Mostrar el nombre de usuario si está autenticado -->
+            {% if user.is_authenticated %}
+            <span class="navbar-text mr-3">
+                @{{ user.username }}
+            </span>
+            {% endif %}
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/formulario">Formulario</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/incidencias">Incidencias</a>
+                    </li>
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/overview">Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/signup">Registrar Usuario</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Log Out</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/signin">Sign in</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<div class="container">
+    {% block content %}
+    {% endblock %}
+</div>
+
+<!-- Scripts de Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.6/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+

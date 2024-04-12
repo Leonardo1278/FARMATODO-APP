@@ -1,0 +1,456 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .field-container {
+        display: flex;
+        align-items: center; /* Alinea verticalmente los elementos */
+        gap: 10px; /* Espacio entre el input y la previsualizaciÃ³n */
+    }
+
+    .preview img {
+        width: 100px; /* TamaÃ±o fijo para la previsualizaciÃ³n */
+        height: auto; /* Mantiene la proporciÃ³n de la imagen */
+        border-radius: 4px; /* Opcional: bordes redondeados para la previsualizaciÃ³n */
+    }
+
+    h1 {
+        text-align: center;
+        color: #536DFE;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    input[type="file"] {
+        /* Puedes dejar esto tal cual o ajustarlo segÃºn necesites */
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: royalblue;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #4158D0;
+    }
+    .preview {
+    position: relative; /* Permite posicionar absolutamente el botÃ³n "X" dentro */
+    display: inline-block; /* O cualquier otro display que se ajuste a tu diseÃ±o */
+    margin-right: 10px; /* Asegura espacio entre la imagen y el campo de archivo */
+    }
+    .modal {
+        display: none; /* Oculto por defecto */
+        position: fixed; /* Se queda fijo en la pantalla */
+        z-index: 100; /* Se sitÃºa sobre el resto del contenido */
+        left: 0;
+        top: 0;
+        width: 50%; /* Ancho completo */
+        height: 70%; /* Alto completo */
+        overflow: auto; /* Si es necesario, se aÃ±ade scroll */
+        background-color: rgba(0,0,0,0.5); /* Color de fondo */
+    }
+
+    /* Contenedor de la imagen dentro del modal */
+    .modal-content {
+        margin: 10% auto; /* Margen arriba y centrado horizontalmente */
+        padding: 20px;
+        width: 80%; /* Ancho del contenido */
+    }
+
+    /* La imagen del modal usarÃ¡ un mÃ¡ximo del 100% del ancho */
+    .modal-content img {
+        width: 50%;
+        height: auto;
+    }
+
+    /* El botÃ³n de cerrar el modal */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .field-container input[type="file"] {
+    background-color: #f2f2f2;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* Mejoras en el botÃ³n de eliminar con una estÃ©tica mÃ¡s refinada */
+.preview span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #ff4545; /* Rojo para visibilidad */
+        color: #fff; /* Texto blanco */
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 2px;
+    }
+/* Estilo para el overlay del modal para una transiciÃ³n mÃ¡s suave */
+.modal {
+    transition: all 0.3s ease;
+}
+
+/* AÃ±adir un poco de animaciÃ³n al abrir el modal */
+.modal-content {
+    animation: modalOpen 0.3s ease forwards;
+}
+
+@keyframes modalOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ajustes en el botÃ³n principal para mejorar la interactividad */
+button {
+    transition: background-color 0.3s ease;
+}
+
+/* Hover efectos para campos */
+input[type="text"], select, input[type="file"] {
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:hover, select:hover, input[type="file"]:hover {
+    border-color: #536DFE;
+}
+.body-or-specific-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Esto hace que el contenedor tenga al menos la altura de la pantalla */
+}
+/* Ajustes previos del modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    max-width: 90%;
+    background-color: rgba(173, 172, 172, 0.642);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: #000;
+    background-color: #ccc;
+    border: none;
+    border-radius: 50%;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+    /* Mejorando la estÃ©tica de la "X" de eliminaciÃ³n en la previsualizaciÃ³n de la imagen */
+    .preview span {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: #dc3545; /* Bootstrap 'danger' color */
+    color: hsl(0, 0%, 100%);
+    border-radius: 50%;
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+.custom-file-label {
+    display: block;
+    margin-top: 5px;
+}
+</style>
+
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="card-title text-center text-primary">Formulario de Incidencia</h1>
+                    {{ error }}
+                    <form action="/formulario/" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+
+                        {% csrf_token %}                        
+
+
+                        <div class="form-row" style="display: flex; justify-content: space-between;">
+                            <div class="form-group" style="flex: 1; margin-right: 10px;">
+                                <label for="main_section">Zona:</label>
+                                <select id="main_section" name="main_section" class="form-control">
+                                    {% for main_section in main_sections %}
+                                    <option value="{{ main_section }}">{{ main_section }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        
+                            <div class="form-group" style="flex: 1;">
+                                <label for="inner_section">Área:</label>
+                                <select id="inner_section" name="inner_section" class="form-control">
+                                    {% for inner_section in inner_sections %}
+                                    <option value="{{ main_section }}">{{ inner_section }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="descrip">Descripción:</label>
+                            <textarea id="descrip" name="descrip" class="form-control" rows="4"></textarea>
+                        </div>
+                        
+                        
+                        <div class="form-group">
+                          {{ form.photo_1.label_tag }}
+                          
+                          <label for="photo_1" class="custom-file-label" style="display: none;">Sin foto</label>
+                          <input type="file" id="photo_1" name="photo_1" accept="image/*" capture="user" style="display: none;">
+                          <button type="button" class="btn btn-secondary" id="photo1Button">Foto - Browse</button>
+                          <div id="preview1" class="preview"></div>
+                        </div>
+
+
+
+                        <div class="form-group">
+                            {{ form.photo_2.label_tag }}
+                            
+                            <label for="photo_2" class="custom-file-label" style="display: none;">Sin foto</label>
+                            <input type="file" id="photo_2" name="photo_2" accept="image/*" capture="user" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="photo2Button">Foto - Browse</button>
+                            <div id="preview2" class="preview"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.photo_3.label_tag }}
+                            
+                            <label for="photo_3" class="custom-file-label" style="display: none;">Sin foto</label>
+                            <input type="file" id="photo_3" name="photo_3" accept="image/*" capture="user" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="photo3Button">Foto - Browse</button>
+                            <div id="preview3" class="preview"></div>
+                        </div>
+
+                        
+                        <div class="form-check">
+                            {{ form.urgency }}
+                            <label class="form-check-label" for="{{ form.urgency.id_for_label }}">
+                                Urgencia
+                            </label>
+                        </div>
+                                                
+
+                        <div class="form-group">
+                            {{ form.id_section.label_tag }} {{ form.id_section }}
+                        </div>
+
+
+                        <!-- Modal para la imagen ampliada -->
+                        <div id="imageModal" class="modal">
+                            <span class="close">&times;</span>
+                            <img class="modal-content" id="imgModal">
+                        </div>
+
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="confirmationCheck" name="confirmationCheck" required>
+                            <label class="form-check-label" for="confirmationCheck">Confirmo que la información es correcta</label>
+                            <div class="invalid-feedback">Es necesario confirmar antes de enviar.</div>
+                        </div>
+
+
+                        
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script de JavaScript para la previsualizaciÃ³n de imÃ¡genes -->
+<!-- AsegÃºrate de que los estilos de .preview estÃ©n ajustados como se sugiere arriba -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal y su funcionalidad de cierre
+    const modal = document.getElementById('imageModal');
+    const imgModal = document.getElementById('imgModal');
+    const closeModal = document.querySelector(".close");
+
+    closeModal.onclick = function() {
+        modal.style.display = "none";
+    };
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    };
+
+    // Previsualización de imágenes, apertura de modal y botón de eliminar
+    const imageInputs = document.querySelectorAll('input[type="file"]');
+    imageInputs.forEach((input, index) => {
+        input.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.getElementById(`preview${index + 1}`);
+                    previewContainer.innerHTML = '';
+
+                    // Imagen de previsualización
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.maxWidth = '100px';
+
+                    // Botón de eliminar
+                    const removeBtn = document.createElement('span');
+                    removeBtn.textContent = 'X';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.right = '10px';
+                    removeBtn.style.top = '0';
+                    removeBtn.style.cursor = 'pointer';
+                    removeBtn.style.color = 'red';
+                    removeBtn.style.fontSize = '20px';
+                    removeBtn.style.fontWeight = 'bold';
+
+                    // Funcionalidad para eliminar la previsualización y limpiar el input
+                    removeBtn.onclick = function() {
+                        previewContainer.innerHTML = '';
+                        input.value = '';
+                        document.querySelector(`label[for="${input.id}"]`).textContent = 'Sin foto'; // Restablece el texto de la etiqueta personalizada
+                    };
+
+                    // Mostrar el modal al hacer clic en la imagen
+                    img.onclick = function() {
+                        imgModal.src = this.src;
+                        modal.style.display = "block";
+                    };
+
+                    previewContainer.appendChild(img);
+                    previewContainer.appendChild(removeBtn);
+                };
+                reader.readAsDataURL(file);
+                document.querySelector(`label[for="${input.id}"]`).textContent = file.name; // Actualiza el texto de la etiqueta personalizada con el nombre del archivo
+            } else {
+                document.querySelector(`label[for="${input.id}"]`).textContent = 'Sin foto'; // Restablece el texto si no se selecciona archivo
+            }
+        });
+    });
+
+    // Carga dinámica de las opciones de 'inner_section' basadas en la selección de 'main_section'
+    const mainSectionSelect = document.getElementById('main_section');
+    const innerSectionSelect = document.getElementById('inner_section');
+
+    mainSectionSelect.addEventListener('change', function() {
+        const mainSection = this.value;
+
+        // Limpia las opciones existentes en 'inner_section'
+        innerSectionSelect.innerHTML = '';
+
+        // Llama a tu API para obtener las opciones basadas en la sección principal seleccionada
+        fetch(`/api/inner-sections/?main_section=${encodeURIComponent(mainSection)}`)
+            .then(response => response.json())
+            .then(data => {
+                // Asegúrate de que la respuesta incluya las opciones de 'inner_section'
+                data.inner_sections.forEach(innerSection => {
+                    const option = document.createElement('option');
+                    option.value = innerSection.id;
+                    option.textContent = innerSection.name;
+                    innerSectionSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error loading inner sections:', error));
+    });
+});
+
+(function() {
+'use strict';
+var form = document.querySelector('.needs-validation');
+form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
+    // Verificar si el cuadro de confirmación está marcado
+    var confirmationCheck = document.getElementById('confirmationCheck');
+    if (!confirmationCheck.checked) {
+        // Prevent form submission
+        event.preventDefault();
+        event.stopPropagation();
+        // Optional: Show a custom error message
+        alert('Debes confirmar que la información es correcta antes de enviar.');
+    }
+    
+    form.classList.add('was-validated');
+}, false);
+})();
+
+// Añadir evento click al botón personalizado para la foto 1
+document.getElementById('photo1Button').addEventListener('click', function() {
+    document.getElementById('photo_1').click();
+});
+
+// Añadir eventos click a los botones personalizados para photo_2 y photo_3
+document.getElementById('photo2Button').addEventListener('click', function() {
+    document.getElementById('photo_2').click();
+});
+
+document.getElementById('photo3Button').addEventListener('click', function() {
+    document.getElementById('photo_3').click();
+});
+
+
+</script>
+
+    
+    
+    
+{% endblock %}

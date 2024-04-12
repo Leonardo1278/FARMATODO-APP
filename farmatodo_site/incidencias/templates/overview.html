@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="padding-top: 50px;">
+<style>
+    .form-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+        margin-right: 0; /* Ajuste */
+        margin-left: 0; /* Ajuste */
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    .table-custom, .table-custom th, .table-custom td {
+        border: 1px solid #dee2e6;
+    }
+    .table-custom thead th {
+        background-color: #007bff;
+        color: white;
+    }
+    .table-custom tbody tr:nth-of-type(odd) {
+        background-color: #f8f9fa;
+    }
+    .table-custom tbody tr:hover {
+        background-color: #e9ecef;
+    }
+    .table-custom tfoot th {
+        background-color: #e9ecef;
+        font-weight: bold;
+    }
+    .table-secondary thead th {
+    background-color: #030b13; /* Fondo azul para los títulos de la segunda tabla */
+    color: white;
+}
+    .pie-chart-container,
+    .chart-container {
+        margin-top: 10px; /* Ajuste */
+        margin-bottom: 10px; /* Ajuste */
+    }
+</style>
+
+<div class="container mt-4">
+    <h2 class="mb-3">Resumen de Incidencias por Ubicación</h2>
+
+    <div class="form-section no-extra-margin">
+        <form method="get" action="{% url 'overview' %}">
+            <div class="form-row">
+                <div class="col-md-3 mb-3">
+                    <label for="location">Ubicación:</label>
+                    <select id="location" name="location_name" class="form-control">
+                        <option value="">Selecciona una ubicación</option>
+                        {% for location in locations %}
+                        <option value="{{ location }}" {% if request.GET.location_name == location %}selected{% endif %}>{{ location }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="start_date">Fecha Inicio:</label>
+                    <input type="date" id="start_date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="end_date">Fecha Fin:</label>
+                    <input type="date" id="end_date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                </div>
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" class="btn btn-primary btn-block">Filtrar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+    <div class="mb-5">
+        <canvas id="incidenciasChart"></canvas>
+    </div>
+
+    <table class="table table-custom mb-4">
+        <thead>
+            <tr>
+                <th>Ubicación</th>
+                <th>Total de Incidencias</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in location_summary %}
+            <tr>
+                <td>{{ item.location_name }}</td>
+                <td>{{ item.total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table class="table table-custom table-secondary">
+        <thead class="thead-light">
+            <tr>
+                <th>Ubicación</th>
+                <th>Sección Principal</th>
+                <th>Número de Incidencias</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for summary in summaries %}
+            <tr>
+                <td>{{ summary.location_name }}</td>
+                <td>{{ summary.main_section }}</td>
+                <td>{{ summary.num_incidencias }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No hay datos disponibles.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2">Total General</th>
+                <th>{{ total_general_incidencias }}</th>
+            </tr>
+        </tfoot>
+    </table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+    var ctx = document.getElementById('incidenciasChart').getContext('2d');
+    var labels = [];
+    var data = [];
+
+    // Itera sobre los resúmenes para obtener las secciones principales y la suma de incidencias por sección
+    var sectionData = {};
+    {% for summary in summaries %}
+        var section = "{{ summary.main_section }}";
+        var incidencias = {{ summary.num_incidencias }};
+        if (section in sectionData) {
+            sectionData[section] += incidencias;
+        } else {
+            sectionData[section] = incidencias;
+        }
+    {% endfor %}
+
+    // Ahora, construye las etiquetas y los datos basados en el diccionario sectionData
+    for (var section in sectionData) {
+        labels.push(section);
+        data.push(sectionData[section]);
+    }
+
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Número de Incidencias',
+                data: data,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    // Añade más colores si es necesario
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    // Añade más colores si es necesario
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+            legend: {
+                display: true
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            title: {
+                display: true,
+                text: 'Incidencias por Sección Principal'
+            },
+            tooltips: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                    label: function(tooltipItem, data) {
+                        return data.datasets[tooltipItem.datasetIndex].label + ': ' + tooltipItem.yLabel;
+                    }
+                }
+            }
+        }
+    });
+
+    // Calcula el total de incidencias
+    var totalIncidencias = 0;
+    {% for summary in summaries %}
+        totalIncidencias += {{ summary.num_incidencias }};
+    {% endfor %}
+    
+    var totalRow = '<tr><td colspan="1">Total</td><td>' + totalIncidencias + '</td></tr>';
+    document.querySelector('.table-custom tbody').insertAdjacentHTML('beforeend', totalRow);
+
+});
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var pieCtx = document.getElementById('incidenciasPieChart').getContext('2d');
+        var pieChart = new Chart(pieCtx, {
+            type: 'pie',
+            data: {
+                labels: [{% for inc in incidencias_por_ubicacion %}'{{ inc.location_name }}',{% endfor %}],
+                datasets: [{
+                    label: 'Número de Incidencias por Ubicación',
+                    data: [{% for inc in incidencias_por_ubicacion %}{{ inc.total_incidencias }},{% endfor %}],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)',
+                        'rgba(255, 159, 64, 0.6)',
+                    ],
+                    borderColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'Incidencias por Ubicación'
+                }
+            }
+        });
+
+        // Calcula el total de incidencias
+        let totalIncidencias = 0;
+        {% for summary in summaries %}
+        totalIncidencias += {{ summary.num_incidencias }};
+        {% endfor %}
+        
+        // Añade la fila de total al final de la tabla
+        const totalRow = `<tr><th colspan="2">Total</th><th>${totalIncidencias}</th></tr>`;
+        document.querySelector(".table tbody").insertAdjacentHTML("beforeend", totalRow);
+    });
+</script>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="padding-top: 50px;">
+<style>
+.signup-form-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    text-align: center;
+}
+
+.signup-form-container h1 {
+    margin-bottom: 20px;
+}
+
+.signup-form-container form {
+    display: grid;
+    grid-gap: 20px; /* Espacio entre campos del formulario */
+}
+
+.signup-form-container form p {
+    margin: 0; /* Elimina los márgenes por defecto en los párrafos */
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-form-container form p label {
+    text-align: left;
+    margin-bottom: 5px; /* Espacio entre la etiqueta y el campo de entrada */
+}
+
+.signup-form-container form input[type="text"],
+.signup-form-container form input[type="password"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.signup-form-container button {
+    padding: 10px 20px;
+    background-color: royalblue;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.error {
+    color: red;
+    margin-bottom: 20px;
+}
+</style>
+
+<div class="signup-form-container">
+    <h1>SignUp</h1>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/signup/">
+        {% csrf_token %}
+        {% for field in form %}
+            <p>
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small style="color: #666;">{{ field.help_text }}</small>
+                {% endif %}
+                {% if field.errors %}
+                    <div class="error">
+                        {{ field.errors.as_text }}
+                    </div>
+                {% endif %}
+            </p>
+        {% endfor %}
+        <button type="submit">Signup</button>
+    </form>
+</div>
+</div>
+{% endblock %}

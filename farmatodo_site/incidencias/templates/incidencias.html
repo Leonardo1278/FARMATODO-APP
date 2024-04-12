@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="padding-top: 70px;">
+<h1>INCIDENCIAS</h1>
+
+<!-- Formulario de filtro compacto -->
+<form method="get" action="{% url 'incidencias' %}" style="margin-bottom: 20px;">
+    <label for="main_section">Zona: </label>
+    <select id="main_section" name="main_section">
+        <option value="">Todas</option>
+        {% for section in main_sections %}
+            <option value="{{ section }}" {% if request.GET.main_section == section %}selected{% endif %}>{{ section }}</option>
+        {% endfor %}
+    </select>
+    <br> <!-- Salto de línea aquí -->
+    <label for="inner_section">Área: </label> <!-- Añade margen a la izquierda -->
+    <select id="inner_section" name="inner_section">
+        <option value="">Todas</option>
+        {% for section in inner_sections %}
+            <option value="{{ section }}" {% if request.GET.inner_section == section %}selected{% endif %}>{{ section }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Filtrar</button>
+</form>
+
+<!-- Gráfico de incidencias -->
+<div style="max-width: 300px; margin: 0 auto;">
+    <canvas id="incidenciasChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var ctx = document.getElementById('incidenciasChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: [{% for item in incidencias_count %}'{{ item.main_section }}',{% endfor %}],
+                datasets: [{
+                    data: [{% for item in incidencias_count %}{{ item.total }},{% endfor %}],
+                    backgroundColor: [
+                        'red', 'blue', 'green', 'orange', 'purple', 'yellow' // Añade o modifica según necesites
+                    ],
+                    borderColor: 'white',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Incidencias por Sección Principal'
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Lista de incidencias -->
+<div class="incidencias-lista" style="margin-top: 20px;">
+    {% for incidencia in incidencias %}
+        <div class="incidencia" style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+            <h2>{{ incidencia.location_name }} - {{ incidencia.main_section }} - {{ incidencia.inner_section }}</h2>
+            <p>{{ incidencia.description }}</p>
+            <p><strong>Urgencia:</strong> {{ incidencia.urgency }}</p>
+            <p><strong>Fecha y Hora de Registro:</strong> {{ incidencia.registro_fecha_hora }}</p>
+            {% if incidencia.photo_1 %}
+                <img src="{{ incidencia.photo_1 }}" alt="Foto 1" style="max-width: 100px; margin-right: 5px;">
+            {% endif %}
+            {% if incidencia.photo_2 %}
+                <img src="{{ incidencia.photo_2 }}" alt="Foto 2" style="max-width: 100px; margin-right: 5px;">
+            {% endif %}
+            {% if incidencia.photo_3 %}
+                <img src="{{ incidencia.photo_3 }}" alt="Foto 3" style="max-width: 100px; margin-right: 5px;">
+            {% endif %}
+
+        </div>
+    {% empty %}
+        <p style="text-align: center;">No hay incidencias registradas.</p>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}
